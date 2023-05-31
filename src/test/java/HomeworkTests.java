@@ -8,6 +8,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 
