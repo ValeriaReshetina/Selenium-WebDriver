@@ -1,3 +1,5 @@
+package ru.stqa.training.selenium;
+
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -5,17 +7,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 public class FirefoxNightlyLaunchTest {
-
-    private WebDriver driver;
-    private WebDriverWait wait;
-
-
 
     @Test
     public void testLoginInFirefoxNightlyForExercise5() {
