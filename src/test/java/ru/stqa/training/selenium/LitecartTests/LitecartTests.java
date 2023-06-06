@@ -1,9 +1,6 @@
 package ru.stqa.training.selenium.LitecartTests;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -12,6 +9,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,7 +44,7 @@ public class LitecartTests {
     public void testScriptThroughAllAdminPanelSections() {
         driver.get("http://localhost/litecart/admin/");
         login("admin", "admin");
-        
+
         //Appearance
         WebElement appearanceMenuItem = driver.findElement(By.xpath("//*[contains(text(), 'Appearence')]"));
         appearanceMenuItem.click();
@@ -282,6 +280,20 @@ public class LitecartTests {
                 By.xpath("//*[contains(text(), 'vQmods')]"));
         vQmodsMenuItem.click();
         assertTrue(isElementPresent(By.xpath("//h1[contains(text(), 'vQmods')]")));
+    }
+
+    @Test
+    @DisplayName("Test for exercise 7")
+    public void testCheckingForStickers() {
+        driver.get("http://localhost/litecart/en/");
+
+        List<WebElement> allDucksProductCardList = driver.findElements(
+                By.xpath("//*[contains(@class, 'product column')]"));
+        List<WebElement> allProductStickerList = driver.findElements(
+                By.xpath("//*[contains(@class, 'product column')]//*[contains(@class, 'sticker')]"));
+
+        Assertions.assertEquals(allProductStickerList.size(), allDucksProductCardList.size(),
+                "Error: amount of product stickers not equal to product cards amount");
     }
 
     private void login(String username, String password) {
