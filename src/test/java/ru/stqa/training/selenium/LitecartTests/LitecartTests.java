@@ -289,11 +289,33 @@ public class LitecartTests {
 
         List<WebElement> allDucksProductCardList = driver.findElements(
                 By.xpath("//*[contains(@class, 'product column')]"));
-        List<WebElement> allProductStickerList = driver.findElements(
-                By.xpath("//*[contains(@class, 'product column')]//*[contains(@class, 'sticker')]"));
 
-        Assertions.assertEquals(allProductStickerList.size(), allDucksProductCardList.size(),
-                "Error: amount of product stickers not equal to product cards amount");
+        Integer allProductsAmount = allDucksProductCardList.size();
+
+        for (int i = 1; i <= allProductsAmount; i++) {
+            List<WebElement> stickerElements = driver.findElements(By.xpath(
+                    "(//*[contains(@class, 'product column')])[" +
+                            i + "]" + "//*[contains(@class, 'sticker')]"));
+            Assertions.assertEquals(stickerElements.size(), 1,
+                    "Error: amount of product stickers not equal 1");
+        }
+    }
+
+    @Test
+    @DisplayName("Test for exercise 8")
+    public void testCheckingForCountriesAndGeofencesOnCountriesPage() {
+        driver.get("http://localhost/litecart/admin/");
+        login("admin", "admin");
+
+        //Countries
+        WebElement countriesMenuItem = driver.findElement(By.xpath("//*[contains(text(), 'Countries')]"));
+        countriesMenuItem.click();
+        assertTrue(isElementPresent(By.xpath("//h1[contains(text(), 'Countries')]")));
+
+        //Geo Zones
+        WebElement geoZonesMenuItem = driver.findElement(By.xpath("//*[contains(text(), 'Geo Zones')]"));
+        geoZonesMenuItem.click();
+        assertTrue(isElementPresent(By.xpath("//h1[contains(text(), 'Geo Zones')]")));
     }
 
     private void login(String username, String password) {
