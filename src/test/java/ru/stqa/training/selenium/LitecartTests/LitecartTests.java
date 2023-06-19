@@ -7,7 +7,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.ArrayList;
@@ -64,7 +63,6 @@ public class LitecartTests {
             }
         }
     }
-
     private List<String> getElementNames(List<WebElement> elements) {
         List<String> elementNames = new ArrayList<String>();
         for (WebElement e : elements) {
@@ -114,10 +112,35 @@ public class LitecartTests {
         Assertions.assertEquals(countryNames, sortedCopyOfCountryNames);
 
         //b) checking if zones are in alphabetical order for countries with more than one zone
-        List<WebElement> countryZoneElements = driver.findElements(
-                By.xpath("//*[contains(text(), 'Zones') and not(contains(text(), 'Geo Zones'))]"));
+        List<WebElement> zoneCounterElements = driver.findElements(
+                By.xpath("//*[@class='row']//td[6]"));
+        List<Integer> indexesOfNonZeroZonesElements = new ArrayList<>();
 
+        for (int i = 0; i < zoneCounterElements.size(); i++) {
+            WebElement zoneWebElement = zoneCounterElements.get(i);
+            String text = zoneWebElement.getText();
+
+            if (!text.equalsIgnoreCase("0")) {
+                indexesOfNonZeroZonesElements.add(i + 1);
+            }
         }
+        for (Integer index : indexesOfNonZeroZonesElements){
+            String xpathOfEditButton = "(//*[@class='row']//td[7])[" + index + "]";
+            driver.findElement(By.xpath(xpathOfEditButton)).click();
+
+            List<WebElement> zoneNameElements = driver.findElements(By.xpath(
+                    "//*[@id='table-zones']//tr//td[3]/input[not(contains(@data-size,'medium'))]/parent::*"));
+            List<String> zoneNames = new ArrayList<>();
+            for (WebElement zoneName : zoneNameElements) {
+                zoneNames.add(zoneName.getText());
+            }
+            ArrayList<String> sortedCopyOfZoneNames = new ArrayList<>(zoneNames);
+            Collections.sort(sortedCopyOfZoneNames);
+
+            Assertions.assertEquals(zoneNames, sortedCopyOfZoneNames);
+            driver.navigate().back();
+        }
+    }
 
     @Test
     @DisplayName("Test for exercise 9)")
