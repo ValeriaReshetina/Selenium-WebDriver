@@ -1,5 +1,6 @@
 package ru.stqa.training.selenium.LitecartTests;
 
+import dev.failsafe.internal.util.Assert;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
@@ -147,10 +148,29 @@ public class LitecartTests {
     public void testCheckingGeofenceSortingOnGeofencesPage() {
         driver.get("http://localhost/litecart/admin/");
         login("admin", "admin");
-
         WebElement geoZonesMenuItem = driver.findElement(By.xpath("//*[contains(text(), 'Geo Zones')]"));
         geoZonesMenuItem.click();
 
+        WebElement tableZones = driver.findElement(By.xpath("//*[@class='dataTable']"));
+        List<WebElement> zoneRows = tableZones.findElements(By.xpath("//*[@class='row']"));
+        for (int i = 0; i < zoneRows.size(); i++) {
+            zoneRows.get(i).findElement(By.cssSelector("td:nth-child(3)>a")).click();
+            WebElement tableCountryZones = driver.findElement(By.xpath("//*[@id='table-zones']"));
+            List<WebElement> stateRows = tableCountryZones.findElements(
+                    By.cssSelector("tr:not(.header):not(:last-child)"));
+            ArrayList<String> zoneList = new ArrayList<>();
+            for (WebElement stateRow : stateRows) {
+                zoneList.add(stateRow.findElement(By.cssSelector(
+                        "td:nth-child(3)>select>option[selected=selected]")).getAttribute("textContent"));
+            }
+            List<String> sortedList = new ArrayList(zoneList);
+            Collections.sort(sortedList);
+
+            driver.get("http://localhost/litecart/admin/?app=geo_zones&doc=geo_zones");
+            zoneRows = driver.findElements(By.xpath("//*[@class='dataTable']//*[@class='row']"));
+
+            Assertions.assertEquals(zoneList, sortedList);
+        }
     }
 
     private void login(String username, String password) {
