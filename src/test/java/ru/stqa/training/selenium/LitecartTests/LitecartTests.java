@@ -1,16 +1,17 @@
 package ru.stqa.training.selenium.LitecartTests;
 
-import dev.failsafe.internal.util.Assert;
 import org.junit.jupiter.api.*;
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxBinary;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +24,7 @@ public class LitecartTests {
 
     private WebDriver driver;
     public WebDriverWait wait;
-    String browser = "CHROME";
+    String browser = "FIREFOX";
 
     @BeforeEach
     public void start() {
@@ -32,6 +33,11 @@ public class LitecartTests {
         }
         if (browser.equalsIgnoreCase("IE")) {
             driver = new InternetExplorerDriver();
+        }
+        if (browser.equalsIgnoreCase("FIREFOX")) {
+            FirefoxOptions options = new FirefoxOptions();
+            options.setBinary(new FirefoxBinary(new File("c:\\Program Files\\Mozilla Firefox\\firefox.exe")));
+            driver = new FirefoxDriver(options);
         }
         driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
@@ -187,17 +193,15 @@ public class LitecartTests {
     @DisplayName("Test for exercise 11)")
     public void testUserRegistration() {
         driver.get("http://localhost/litecart/en/create_account");
-        String generatedMail = getSaltString() + "@mail.ru";
+        String generatedMail = createRandomEmail() + "@mail.ru";
 
         driver.findElement(By.name("firstname")).sendKeys("Valeria");
         driver.findElement(By.name("lastname")).sendKeys("Reshetina");
         driver.findElement(By.name("address1")).sendKeys("Columbus Ave");
         driver.findElement(By.name("postcode")).sendKeys("01020");
         driver.findElement(By.name("city")).sendKeys("Springfield");
-
-        WebElement element = driver.findElement(By.tagName("select"));
-        Select select = new Select(element);
-        select.selectByValue("US");
+        driver.findElement(By.className("select2")).click();
+        driver.findElement(By.className("select2-search__field")).sendKeys("United States" + Keys.ENTER);
 
         driver.findElement(By.name("email")).sendKeys(generatedMail);
         driver.findElement(By.name("phone")).sendKeys("+79881120310");
@@ -214,13 +218,86 @@ public class LitecartTests {
                 "//div[@class = 'left']//a[@href = 'http://localhost/litecart/en/logout']")).click();
     }
 
-    protected String getSaltString() {
-        String SALTCHARS = "abcdefghijklmnopqrstuvwxyz1234567890";
+    @Test
+    @DisplayName("Test for exercise 12)")
+    public void addingNewProductTest() {
+        driver.get("http://localhost/litecart/admin/");
+        login("admin", "admin");
+        String nameOfNewProduct = createRandomName(9);
+        driver.get("http://localhost/litecart/admin/?app=catalog&doc=catalog");
+
+        //general tab
+        driver.findElement(By.xpath("//*[contains(text(), 'Add New Product')]")).click();
+        WebElement generalTab = driver.findElement(By.xpath("//*[contains(text(), 'General')]"));
+        generalTab.findElement(By.xpath("//input[@name='status'][@value=1]")).click();
+        generalTab.findElement(By.xpath("//*[@name='name[en]']")).sendKeys(nameOfNewProduct);
+        generalTab.findElement(By.xpath("//*[@name='code']")).sendKeys(createRandomDigit(6));
+        generalTab.findElement(By.xpath("//*[text()='Male']//parent::*//td/input")).click();
+        File uploadFile = new File("src/test/resources/wildDuck.jpg");
+        String filePath = uploadFile.getAbsolutePath();
+        generalTab.findElement(By.xpath("//*[@name='new_images[]']")).sendKeys(filePath);
+        generalTab.findElement(By.xpath("//*[@name='date_valid_from']")).sendKeys("23-06-2023");
+        generalTab.findElement(By.xpath("//*[@name='date_valid_to']")).sendKeys("23-06-2025");
+
+        //information tab
+        driver.findElement(By.xpath("//*[contains(text(), 'Information')]")).click();
+        WebElement infoTab = driver.findElement(By.xpath("//div[@id='tab-information']"));
+        Select selectManufacturer = new Select(infoTab.findElement(By.xpath("//*[@name='manufacturer_id']")));
+        selectManufacturer.selectByVisibleText("ACME Corp.");
+        infoTab.findElement(By.xpath("//*[@name='keywords']")).sendKeys(createRandomName(7));
+        infoTab.findElement(By.xpath("//*[@name='short_description[en]']"))
+                .sendKeys(createRandomName(7));
+        infoTab.findElement(By.xpath("//div[@class='trumbowyg-editor']"))
+                .sendKeys(createRandomName(5) + " " + createRandomName(7));
+        infoTab.findElement(By.xpath("//*[@name='head_title[en]']")).sendKeys(createRandomName(5));
+        infoTab.findElement(By.xpath("//*[@name='meta_description[en]']"))
+                .sendKeys(createRandomName(4));
+
+        //prices tab
+        driver.findElement(By.xpath("//a[text()='Prices']")).click();
+        WebElement pricesTab = driver.findElement(By.xpath("//div[@id='tab-prices']"));
+        pricesTab.findElement(By.xpath("//*[@name='purchase_price']"))
+                .sendKeys(Keys.CONTROL + "A");
+        pricesTab.findElement(By.xpath("//*[@name='purchase_price']"))
+                .sendKeys(createRandomDigit(2) + "," + createRandomDigit(2));
+        Select selectCurrency = new Select(pricesTab.findElement(
+                By.xpath("//*[@name='purchase_price_currency_code']")));
+        selectCurrency.selectByValue("USD");
+        pricesTab.findElement(By.xpath("//*[@name='prices[USD]']"))
+                .sendKeys(createRandomDigit(2) + "," + createRandomDigit(2));
+        driver.findElement(By.xpath("//*[@name='save']")).click();
+
+        WebElement searchInput = driver.findElement(By.xpath("//*[@name='query']"));
+        Actions actions = new Actions(driver);
+        actions.moveToElement(searchInput).click().sendKeys(nameOfNewProduct).sendKeys(Keys.ENTER).perform();
+    }
+
+    protected String createRandomName(int length) {
+        Random rnd = new Random();
+        return rnd.ints(65, 122)
+                .filter(i -> (i > 65) && (i < 90 || i > 97))
+                .mapToObj(i -> (char) i)
+                .limit(length)
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                .toString();
+    }
+
+    protected String createRandomDigit(int length) {
+        Random rnd = new Random();
+        return rnd.ints(48, 57)
+                .mapToObj(i -> (char) i)
+                .limit(length)
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                .toString();
+    }
+
+    protected String createRandomEmail() {
+        String saltChars = "abcdefghijklmnopqrstuvwxyz1234567890";
         StringBuilder salt = new StringBuilder();
         Random rnd = new Random();
         while (salt.length() < 10) { // length of the random string.
-            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
-            salt.append(SALTCHARS.charAt(index));
+            int index = (int) (rnd.nextFloat() * saltChars.length());
+            salt.append(saltChars.charAt(index));
         }
         return salt.toString();
     }
