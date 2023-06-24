@@ -24,7 +24,7 @@ public class LitecartTests {
 
     private WebDriver driver;
     public WebDriverWait wait;
-    String browser = "FIREFOX";
+    String browser = "CHROME";
 
     @BeforeEach
     public void start() {
@@ -270,6 +270,9 @@ public class LitecartTests {
         WebElement searchInput = driver.findElement(By.xpath("//*[@name='query']"));
         Actions actions = new Actions(driver);
         actions.moveToElement(searchInput).click().sendKeys(nameOfNewProduct).sendKeys(Keys.ENTER).perform();
+
+        driver.findElement(By.xpath("//*[@class='row'][last()]")).click();
+        assertTrue(driver.findElement(By.partialLinkText(nameOfNewProduct)).isDisplayed());
     }
 
     protected String createRandomName(int length) {
