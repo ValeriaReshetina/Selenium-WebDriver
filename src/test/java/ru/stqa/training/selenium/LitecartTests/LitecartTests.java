@@ -2,6 +2,7 @@ package ru.stqa.training.selenium.LitecartTests;
 
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -12,12 +13,10 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LitecartTests {
@@ -95,7 +94,7 @@ public class LitecartTests {
             List<WebElement> stickerElements = driver.findElements(By.xpath(
                     "(//*[contains(@class, 'product column')])[" +
                             i + "]" + "//*[contains(@class, 'sticker')]"));
-            Assertions.assertEquals(stickerElements.size(), 1,
+            assertEquals(stickerElements.size(), 1,
                     "Error: amount of product stickers not equal 1");
         }
     }
@@ -119,7 +118,7 @@ public class LitecartTests {
         ArrayList<String> sortedCopyOfCountryNames = new ArrayList<>(countryNames);
         Collections.sort(sortedCopyOfCountryNames);
 
-        Assertions.assertEquals(countryNames, sortedCopyOfCountryNames);
+        assertEquals(countryNames, sortedCopyOfCountryNames);
 
         //b) checking if zones are in alphabetical order for countries with more than one zone
         List<WebElement> zoneCounterElements = driver.findElements(
@@ -147,7 +146,7 @@ public class LitecartTests {
             ArrayList<String> sortedCopyOfZoneNames = new ArrayList<>(zoneNames);
             Collections.sort(sortedCopyOfZoneNames);
 
-            Assertions.assertEquals(zoneNames, sortedCopyOfZoneNames);
+            assertEquals(zoneNames, sortedCopyOfZoneNames);
             driver.navigate().back();
         }
     }
@@ -178,15 +177,51 @@ public class LitecartTests {
             driver.get("http://localhost/litecart/admin/?app=geo_zones&doc=geo_zones");
             zoneRows = driver.findElements(By.xpath("//*[@class='dataTable']//*[@class='row']"));
 
-            Assertions.assertEquals(zoneList, sortedList);
+            assertEquals(zoneList, sortedList);
         }
     }
 
     @Test
     @DisplayName("Test for exercise 10)")
-    public void testVerifyingThatOpensCorrectProductPage() {
+    public void testVerifyingThatCorrectProductPageOpens() {
         driver.get("http://localhost/litecart/en/");
 
+        List<WebElement> productsList = driver.findElements(By.cssSelector("#box-campaigns li"));
+
+        String productName = productsList.get(0).findElement(By.cssSelector(".name")).getText();
+        String price = productsList.get(0).findElement(By.cssSelector(".regular-price")).getText();
+        String priceColor = productsList.get(0).findElement(By.cssSelector(".regular-price"))
+                .getCssValue("color");
+        Double priceFontSize = Double.parseDouble(productsList.get(0).findElement(By.cssSelector(".regular-price"))
+                .getCssValue("font-size").replace("px", ""));
+        Double discountPriceFontSize = Double.parseDouble(productsList.get(0).findElement(By.cssSelector(
+                ".campaign-price")).getCssValue("font-size").replace("px", ""));
+        String discountPrice = productsList.get(0).findElement(By.cssSelector(".campaign-price")).getText();
+        String discountPriceColor = productsList.get(0).findElement(By.cssSelector(".campaign-price"))
+                .getCssValue("color");
+        String discountFont = productsList.get(0).findElement(By.cssSelector(".campaign-price"))
+                .getCssValue("font-weight");
+
+        productsList.get(0).click();
+        assertEquals(driver.findElement(By.cssSelector("#box-product .title")).getText(), productName);
+        assertEquals(driver.findElement(By.cssSelector("#box-product .price-wrapper .regular-price"))
+                .getText(), price);
+        assertEquals(driver.findElement(By.cssSelector("#box-product .price-wrapper .campaign-price"))
+                .getText(), discountPrice);
+        assertTrue(checkColor(priceColor, "price"));
+        assertEquals(driver.findElement(By.cssSelector("#box-product .price-wrapper .regular-price"))
+                .getCssValue("text-decoration-line"), "line-through");
+        assertTrue(checkColor(discountPriceColor, "discontPrice"));
+        assertTrue(checkColor(driver.findElement(By.cssSelector("#box-product .price-wrapper .campaign-price"))
+                .getCssValue("color"), "discontPrice"));
+        assertEquals(discountFont, "700");
+        assertEquals(driver.findElement(By.cssSelector("#box-product .price-wrapper .campaign-price"))
+                .getCssValue("font-weight"), "700");
+        assertTrue(priceFontSize < discountPriceFontSize);
+        assertTrue(Double.parseDouble(driver.findElement(By.cssSelector("#box-product .price-wrapper .regular-price"))
+                .getCssValue("font-size").replace("px", "")) <
+                Double.parseDouble(driver.findElement(By.cssSelector("#box-product .price-wrapper .campaign-price"))
+                        .getCssValue("font-size").replace("px", "")));
     }
 
     @Test
@@ -275,6 +310,13 @@ public class LitecartTests {
         assertTrue(driver.findElement(By.partialLinkText(nameOfNewProduct)).isDisplayed());
     }
 
+    @Test
+    @DisplayName("Test for exercise 13)")
+    public void addingAndRemovingItemsCartTest() {
+        driver.get("http://localhost/litecart/en/");
+
+    }
+
     protected String createRandomName(int length) {
         Random rnd = new Random();
         return rnd.ints(65, 122)
@@ -326,6 +368,19 @@ public class LitecartTests {
         } catch (NoSuchElementException ex) {
             return false;
         }
+    }
+
+    public Boolean checkColor(String color, String price) {
+        String[] numbers = color.replace("rgba(", "").replace(")", "").split(",");
+        int r = Integer.parseInt(numbers[0].trim());
+        int g = Integer.parseInt(numbers[1].trim());
+        int b = Integer.parseInt(numbers[2].trim());
+        if (Objects.equals(price, "price")) {
+            return r == g && r == b;
+        } else if (Objects.equals(price, "discontPrice")) {
+            return g == 0 && b == 0;
+        }
+        return false;
     }
 
     @AfterEach
