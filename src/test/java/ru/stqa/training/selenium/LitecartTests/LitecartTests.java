@@ -317,6 +317,29 @@ public class LitecartTests {
 
     }
 
+    @Test
+    @DisplayName("Test for exercise 14)")
+    public void checkingIfLinksOpenInNewWindowTest() {
+        driver.get("http://localhost/litecart/admin/");
+        login("admin", "admin");
+
+        List<WebElement> tableElements = driver.findElements(By.cssSelector("#content form tr"));
+        String originalWindow = driver.getWindowHandle();
+        for (WebElement tableElement : tableElements) {
+            if (tableElement.findElements(By.cssSelector("[target=_blank]")).size() > 0) {
+                Set<String> oldWindowsSet = driver.getWindowHandles();
+                tableElement.findElement(By.cssSelector("[target=_blank]")).click();
+                wait.until(d -> d.getWindowHandles().size() > oldWindowsSet.size());
+                Set<String> newWindowsSet = driver.getWindowHandles();
+                newWindowsSet.removeAll(oldWindowsSet);
+                String newWindowHandle = newWindowsSet.iterator().next();
+                driver.switchTo().window(newWindowHandle);
+                driver.close();
+                driver.switchTo().window(originalWindow);
+            }
+        }
+    }
+
     protected String createRandomName(int length) {
         Random rnd = new Random();
         return rnd.ints(65, 122)
