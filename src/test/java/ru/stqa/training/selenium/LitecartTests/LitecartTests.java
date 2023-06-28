@@ -306,7 +306,6 @@ public class LitecartTests {
         Actions actions = new Actions(driver);
         actions.moveToElement(searchInput).click().sendKeys(nameOfNewProduct).sendKeys(Keys.ENTER).perform();
 
-        driver.findElement(By.xpath("//*[@class='row'][last()]")).click();
         assertTrue(driver.findElement(By.partialLinkText(nameOfNewProduct)).isDisplayed());
     }
 
