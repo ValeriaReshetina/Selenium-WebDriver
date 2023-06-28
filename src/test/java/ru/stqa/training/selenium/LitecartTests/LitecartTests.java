@@ -10,7 +10,6 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.logging.LogEntry;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -27,7 +26,7 @@ public class LitecartTests {
 
     private WebDriver driver;
     public WebDriverWait wait;
-    String browser = "CHROME";
+    String browser = "FIREFOX";
 
     @BeforeEach
     public void start() {
@@ -214,13 +213,13 @@ public class LitecartTests {
                 .getText(), discountPrice);
         assertTrue(checkColor(priceColor, "price"));
         assertEquals(driver.findElement(By.cssSelector("#box-product .price-wrapper .regular-price"))
-                .getCssValue("text-decoration-line"), "line-through");
+                .getCssValue("text-decoration").split(" ")[0], "line-through");
         assertTrue(checkColor(discountPriceColor, "discontPrice"));
         assertTrue(checkColor(driver.findElement(By.cssSelector("#box-product .price-wrapper .campaign-price"))
                 .getCssValue("color"), "discontPrice"));
-        assertEquals(discountFont, "700");
-        assertEquals(driver.findElement(By.cssSelector("#box-product .price-wrapper .campaign-price"))
-                .getCssValue("font-weight"), "700");
+        assertTrue(checkFontBold(discountFont));
+        assertTrue(checkFontBold(driver.findElement(By.cssSelector("#box-product .price-wrapper .campaign-price"))
+                .getCssValue("font-weight")));
         assertTrue(priceFontSize < discountPriceFontSize);
         assertTrue(Double.parseDouble(driver.findElement(By.cssSelector("#box-product .price-wrapper .regular-price"))
                 .getCssValue("font-size").replace("px", "")) <
@@ -402,6 +401,10 @@ public class LitecartTests {
         return salt.toString();
     }
 
+    public Boolean checkFontBold(String bold){
+        return bold.equals("700") || bold.equals("900");
+    }
+
     private void login(String username, String password) {
         WebElement usernameInput = driver.findElement(By.name("username"));
         usernameInput.click();
@@ -426,7 +429,7 @@ public class LitecartTests {
     }
 
     public Boolean checkColor(String color, String price) {
-        String[] numbers = color.replace("rgba(", "").replace(")", "").split(",");
+        String[] numbers = color.replace(")", "").split("\\(")[1].split(",");
         int r = Integer.parseInt(numbers[0].trim());
         int g = Integer.parseInt(numbers[1].trim());
         int b = Integer.parseInt(numbers[2].trim());
