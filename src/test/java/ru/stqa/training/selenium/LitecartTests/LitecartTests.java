@@ -9,6 +9,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.logging.LogEntry;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -345,6 +346,29 @@ public class LitecartTests {
             driver.close();
             driver.switchTo().window(mainWindow);
             externalLinks = driver.findElements(By.cssSelector("i.fa.fa-external-link"));
+        }
+    }
+
+    @Test
+    @DisplayName("Test for exercise 17)")
+    public void checkingLogsTest() {
+        driver.get("http://localhost/litecart/admin/");
+        login("admin", "admin");
+        driver.get("http://localhost/litecart/admin/?app=catalog&doc=catalog&category_id=1");
+
+        List<WebElement> items = driver.findElements(By.cssSelector(".dataTable a:not([title])[href*=product_id]"));
+        System.out.println(items.size());
+        for (int i = 0; i < items.size(); i++) {
+            items = driver.findElements(By.cssSelector(".dataTable a:not([title])[href*=product_id]"));
+            items.get(i).click();
+            System.out.println("Check the item: " + driver.getTitle());
+            List<LogEntry> log = driver.manage().logs().get("browser").getAll();
+            if (log.size() > 0) {
+                AssertionError assertError = new AssertionError("Failed: Found message in Browser Console \n");
+                System.out.println(assertError.getMessage() + "" + log);
+                Assertions.fail();
+            }
+            driver.get("http://localhost/litecart/admin/?app=catalog&doc=catalog&category_id=1");
         }
     }
 
