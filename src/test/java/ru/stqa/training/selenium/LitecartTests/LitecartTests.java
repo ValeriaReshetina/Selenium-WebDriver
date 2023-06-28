@@ -9,10 +9,13 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -316,26 +319,32 @@ public class LitecartTests {
 
     }
 
+    private String newWindow;
     @Test
     @DisplayName("Test for exercise 14)")
     public void checkingIfLinksOpenInNewWindowTest() {
         driver.get("http://localhost/litecart/admin/");
         login("admin", "admin");
 
-        List<WebElement> tableElements = driver.findElements(By.cssSelector("#content form tr"));
-        String originalWindow = driver.getWindowHandle();
-        for (WebElement tableElement : tableElements) {
-            if (tableElement.findElements(By.cssSelector("[target=_blank]")).size() > 0) {
-                Set<String> oldWindowsSet = driver.getWindowHandles();
-                tableElement.findElement(By.cssSelector("[target=_blank]")).click();
-                wait.until(d -> d.getWindowHandles().size() > oldWindowsSet.size());
-                Set<String> newWindowsSet = driver.getWindowHandles();
-                newWindowsSet.removeAll(oldWindowsSet);
-                String newWindowHandle = newWindowsSet.iterator().next();
-                driver.switchTo().window(newWindowHandle);
-                driver.close();
-                driver.switchTo().window(originalWindow);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        driver.get("http://localhost/litecart/admin/?app=countries&doc=countries");
+        driver.findElement(By.cssSelector("#content tr.row a")).click();
+        List<WebElement> externalLinks = driver.findElements(By.cssSelector("i.fa.fa-external-link"));
+
+        for (int i = 0; i < externalLinks.size(); i++) {
+            String mainWindow = driver.getWindowHandle();
+            externalLinks.get(i).click();
+            wait.until(ExpectedConditions.numberOfWindowsToBe(2));
+            Set<String> allWindows = driver.getWindowHandles();
+            for (String w: allWindows) {
+                if (!w.equals(mainWindow)) {
+                    newWindow = w;
+                }
             }
+            driver.switchTo().window(newWindow);
+            driver.close();
+            driver.switchTo().window(mainWindow);
+            externalLinks = driver.findElements(By.cssSelector("i.fa.fa-external-link"));
         }
     }
 
