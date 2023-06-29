@@ -2,7 +2,6 @@ package ru.stqa.training.selenium.LitecartTests;
 
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -26,7 +25,7 @@ public class LitecartTests {
 
     private WebDriver driver;
     public WebDriverWait wait;
-    String browser = "FIREFOX";
+    String browser = "CHROME";
 
     @BeforeEach
     public void start() {
@@ -416,16 +415,6 @@ public class LitecartTests {
 
         WebElement loginButton = driver.findElement(By.name("login"));
         loginButton.click();
-    }
-
-    protected boolean isElementPresent(By locator) {
-        try {
-            //wait.until((WebDriver driver) -> driver.findElement(locator));
-            driver.findElement(locator);
-            return true;
-        } catch (NoSuchElementException ex) {
-            return false;
-        }
     }
 
     public Boolean checkColor(String color, String price) {
