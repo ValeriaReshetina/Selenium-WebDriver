@@ -23,10 +23,10 @@ public class AddAndDeleteCartTest {
     private MainPage mainPage;
     private ProductPage productPage;
     private CartPage cartPage;
-    String browser = "CHROME";
+    String browser = "FIREFOX";
 
     @BeforeEach
-    public void start() throws InterruptedException {
+    public void start() {
         if (browser.equalsIgnoreCase("CHROME")) {
             driver = new ChromeDriver();
         }
@@ -39,14 +39,15 @@ public class AddAndDeleteCartTest {
             driver = new FirefoxDriver(options);
         }
         driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+        driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
         mainPage = new MainPage(driver);
         productPage = new ProductPage(driver);
         cartPage = new CartPage(driver);
     }
 
     @Test
-    public void cartTest() throws InterruptedException {
+    public void cartTest() {
         mainPage.open();
         for (int i = 0; i < 3; i++) {
             mainPage.clickOnPlate();
@@ -61,7 +62,6 @@ public class AddAndDeleteCartTest {
         for (int i = 0; i < countProduct; i++) {
             if (i != countProduct - 1) {
                 cartPage.removeProduct();
-                Thread.sleep(1000);
                 Assertions.assertTrue(cartPage.getCountRow() < countRow);
                 countRow = cartPage.getCountRow();
             } else {
